@@ -1,0 +1,231 @@
+# CLAUDE.md — O&G Engineering Converter
+
+Project memory for Claude Code. Read and follow all rules below in every session.
+
+Two companion files carry the detail that used to live here. They are not optional reading —
+each is the normative source for its area:
+
+| File | Read it before | Contents |
+|---|---|---|
+| [`docs/PRESERVATION.md`](docs/PRESERVATION.md) | any change to `index.html` | The per-release register of load-bearing element IDs, payload keys, defaults and test-pinned literals, v2.4 → v3.8.3 (Preservation Rule 5) |
+| [`api/CLAUDE.md`](api/CLAUDE.md) | any change under `api/` | Endpoint specs, the stdlib-only dependency rule, the multiply-to-SI unit-factor convention, payload contracts and the API reference cases |
+
+## Project Overview
+
+- **App**: O&G Engineering Converter v3.9 — a control-room-ready unit conversion and engineering calculation suite for the Oil & Gas / LNG sector.
+- **Licence**: **MIT** (`LICENSE`, added 2026-08-16). The repo was previously public but unlicensed, and the in-app Terms §6 actively *prohibited* redistribution and commercial use — those two facts contradicted each other. Three things must now stay in agreement, and a change to any one of them is a change to all three: the `LICENSE` file, the README licence section, and **in-app Terms §6 (`docs.terms.b008`) in the inline English AND all 9 dictionaries**. The licence covers this project's own code only — the `LICENSE` file's third-party section (engineering standards, GIIGNL LNG data, vendor GT specs) is load-bearing and must not be dropped.
+  - Default UI language is English; as of v2.7 all 10 menu languages (en, ja, zh, ko, th, id, ru, es, fr, de) are fully live — working tool AND the four documentation tabs. See "Internationalization (i18n)" below and `docs/SPECIFICATION.md` §12.
+- **Developer**: Naoto Yamabe (petro.naoto@gmail.com)
+- **Live deployment**: Vercel (auto-deploys from `main` branch on GitHub)
+- **Architecture**: Hybrid Edge-Server
+  - `index.html` — single-file frontend: vanilla JavaScript + Tailwind CSS via CDN. No build step. All standard conversions and JIS K 2301 compositional calculations run client-side.
+  - `api/` — three Vercel serverless Python endpoints: `dp_calculator.py` (pipe ΔP, Darcy-Weisbach + Colebrook-White + selectable two-phase friction — HEM default / Lockhart-Martinelli / Müller-Steinhagen-Heck / Friedel, v3.7 — + RP 14E erosion check), `psv_calculator.py` (API 520 Part I PRV sizing), `flowregime.py` (two-phase flow regime map PNG). **Detailed API rules — endpoint specs, dependency constraints, the multiply-to-SI unit-factor convention, and the dp/flowregime reference cases — live in [`api/CLAUDE.md`](api/CLAUDE.md); read it before touching anything in `api/`.**
+  - `requirements.txt` — Python deps for flowregime.py only (numpy/matplotlib/seaborn).
+  - `i18n/*.json` — translation dictionaries, 10 files as of v2.7 (`en`, `ja`, `zh`, `ko`, `th`, `id`, `ru`, `es`, `fr`, `de`). `en.json` is the canonical source and runtime fallback for any working-tool key missing elsewhere; for `docs.*` keys the fallback is the inline English HTML in `index.html` (cached at runtime by `applyTranslations()` — English doc content is deliberately NOT duplicated into `en.json`). Fetched lazily by `index.html`, not bundled — the no-build-step principle holds.
+  - `README.md` — project documentation.
+  - `docs/` (v3.9) — `DEVELOPMENT_PLAN.md` (history + roadmap, incl. the i18n program milestones), `SPECIFICATION.md` (full feature & API spec, known-issues register, §12 i18n architecture), `MARKETING.md` (promotion strategy), `POST.md` (the live LinkedIn campaign log — see below), `PRESERVATION.md` (the Preservation Rule 5 register — see above).
+
+## Public URL — one domain only
+
+**The app is `https://engineering-converter.com`.** It must appear **in the body** of every
+campaign post, not only in a first comment.
+
+The `unit-converter-oil-gas.vercel.app` address is the underlying Vercel deployment and is **not**
+the public identity. Never put it in copy, a share link, a graphic, or `index.html` head metadata —
+`og:url`, `og:image`, `twitter:image` and `rel=canonical` are all pinned to the real domain, and a
+canonical pointing at the Vercel host tells search engines the wrong site is authoritative.
+
+## LinkedIn campaign
+
+A 20-day daily campaign runs from [`docs/POST.md`](docs/POST.md) — schedule, per-day sheets
+(hook, angle, mockup spec, verified numbers, CTA, EN + JA copy), the verified reference-value
+table, the corrections register, and the tracker where each post URL is recorded once live.
+Assets are in `docs/linkedin/`.
+
+**To prepare or publish a day, use the [`linkedin-daily-post`](.claude/skills/linkedin-daily-post/SKILL.md)
+skill.** It is the procedure, and it carries every hard-won trap — compact share links, generating
+the graphic from the *real* app, headless-Chrome PNG capture, clipboard attachment — together with
+the campaign's own hard rules: the domain goes in the post body, every figure is reproduced against
+the running app before it is written, and you look at the rendered image before publishing. Do not
+rediscover any of that here.
+
+One campaign rule also constrains the app itself: a posted share link must use **`?s=`**, because
+LinkedIn strips everything after the `#` when it auto-links a URL — and the app's own Share button
+must keep emitting **`#s=`**, because a fragment never reaches the server while a query string lands
+in access logs. See `docs/SPECIFICATION.md` §6; `tests/test_share_state.py` fails if this is flipped.
+
+## CRITICAL Preservation Rules
+
+1. **NEVER simplify, refactor, remove, or rename any existing feature, function, element ID, or constant unless explicitly instructed.** Silent feature loss is the most serious failure mode in this project.
+2. **Make surgical, minimal diffs.** Do not regenerate whole files or whole sections to apply a small change.
+3. **Do not "improve" working code** (formatting, style, modernization) unless asked.
+4. **Element IDs are an API.** JavaScript references HTML IDs extensively (`out-ghv`, `flow-mass-in-u`, `psv-*`, `dp-*`, etc.). Never change an ID without updating every reference, and only when instructed.
+5. **Before committing, verify no feature was dropped.** The baseline that must exist in every
+   release: the nine tabs (General / Basic Eng / Advanced / Safety / How To Use / Theory / Terms /
+   Privacy / Report), custom modules, copy buttons, all toggles (Abs/Gauge, HHV/LHV, VOL/MOL,
+   MASS/MOL), the Flow Regime card (map image + Three.js 3D animation), and all three serverless
+   API integrations.
+   **Everything the releases since v2.4 added on top of that baseline — element IDs, payload keys,
+   load-bearing defaults, test-pinned literals — is registered in
+   [`docs/PRESERVATION.md`](docs/PRESERVATION.md). Read the sections covering the features your
+   diff touches before you commit any change to `index.html`.** When a release adds something
+   load-bearing, append a section there rather than to this file — the register grew to 23 KB
+   inside this rule before it was moved out.
+
+## Documentation Tab Structure Rules (v3.4) — How To Use & Theory
+
+These two tabs are reference manuals, not changelogs. v3.4 restructured both because five months and twenty-odd releases of "append the new feature at the bottom" had left them ordered by release date: a reader landed on four stacked *★ New in Version x.x* blocks, and the Basic Eng cards were scattered across sections 4, 13, 16, 17 and 18. The rules below exist so that never happens again.
+
+1. **Order follows the tab bar, never the release date.** How To Use sections and Theory Parts are sequenced Header/global → General → Basic Eng → Advanced (Gas Quality & LNG Cargo → Hydraulics → GT Fuel, the v3.6 sub-tab order) → Safety → Report, matching the order the tabs appear in the header. Within a tab, follow the order the cards appear on screen. **A new feature is inserted at its position in that order — never appended to the end.** Renumbering the sections it displaces is part of the change, not a follow-up.
+2. **A Part or section must not straddle two tabs.** v3.4 split the old Theory Parts IV and VII for exactly this reason (Papay Z and the real-gas correlations belong to Basic Eng; Darcy-Weisbach, Crane, NORSOK and RP 14E belong to the Advanced ΔP card). If new content does not sit wholly inside one tab, it needs its own Part.
+3. **"★ New in Version x.x" content lives ONLY in the How To Use `Appendix — Release Notes`**, newest first, one collapsed `<details>` per release with the latest `open`. Nothing describing a release goes above the numbered sections, and Theory Part headings carry no `(v3.0)`-style version tag. Shipping a release means: document the feature in its numbered section *and* add a `<details>` entry to the appendix — the appendix is history, the sections are the manual.
+4. **Every How To Use section earns its place with four things**, in this order: a plain-language paragraph on what the block is for and what depends on it; a ①②③④ workflow strip; a **realistic wireframe mockup** reproducing the actual control layout with real values (Section 11, Gas Composition Input, is the canonical example — preset selector, tier badge, citation line, cross-check chips, all fourteen component boxes, the total row); and a worked example with numbers the reader can reproduce. A one-line description of a non-trivial feature is a defect, not brevity.
+5. **Renumbering is a five-file operation.** Section/Part numbers appear in: the inline English heading in `index.html`, the same heading in all 9 `docs.*` dictionaries, the jump-link strip (inside `docs.howto.b001` / `docs.theory.b001` — the translated strips carry their own copies, so rebuild all ten), the `id="howto-N"`/`id="theory-pN"` anchors, and any cross-reference in prose (`see Section 16`, `Theory Part II`, `§5.4`). Grep for every one of them before committing; `tests/test_i18n_parity.py` will not catch a stale *number*, only a missing key.
+6. **Mechanise it.** The v3.4 restructure was done with scripted, mapped, single-pass rewrites over `index.html` + the 9 dictionaries, asserting the expected hit count on every substitution, then verified in a browser across all 10 languages. Hand-editing 10 files of interleaved numbering is how a section silently disappears — the 1.7 LHV block, which sits OUTSIDE its Part's `<section>` element in the source, was very nearly dropped exactly that way.
+7. **Reordering costs nothing in translation; rewording costs 9 languages.** Moving a `data-i18n-html` element carries its translation with it. Editing the English text under an existing key without updating the 9 dictionaries silently leaves every non-English reader on the old content — worse than a missing key, which at least falls back visibly. Rewrite the English and the 9 translations in the same commit, and derive the translated markup from the English block rather than retyping it.
+
+## UI Consistency Rules
+
+The **Pipe Volume Calculator** card in the Basic Eng tab is the canonical reference for converter-card layout. Every conversion card (in any tab) MUST follow its philosophy:
+
+1. **Figure and unit are SEPARATE adjacent boxes**, never a single shared container. The numeric figure sits in its own box (`rounded-l-lg`, holding the input + any copy button); the unit sits in its own box (`rounded-r-lg`) as a sibling in a `flex` row.
+2. **They highlight in orange independently.** The figure box uses `focus-within:ring-2 focus-within:ring-amber-500`; the unit `<select>` uses `focus:ring-2 focus:ring-amber-500`. Never wrap both in one `focus-within`/`unit-field` container that lights up the figure and the unit together.
+3. **Selectable units** are a native `<select>` styled `bg-slate-800 border-y border-r border-slate-700 rounded-r-lg text-amber-500` and MUST keep the browser's native dropdown arrow — do NOT use `appearance-none` or a custom chevron.
+4. **Fixed (non-selectable) units** use a matching static `bg-slate-800 … rounded-r-lg` chip with no arrow, so the layout stays consistent while signalling that the unit is not editable.
+
+This applies to the General tab (Gas Volume, Pressure, Temperature, Heating Value) and any future converter cards; keep them visually identical in philosophy to the Basic Eng Pipe Volume card.
+
+## Calculation Rules (JIS K 2301:2011) — DO NOT ALTER
+
+These rounding rules are mandated to match the Excel reference worksheet exactly. Any change breaks regulatory traceability.
+
+- Vol→Mol: `Cmᵢ = ROUND( (Cvᵢ/Zᵢ) / Σ(Cv/Z), 4 )` — mole fractions rounded to **4 d.p.**
+- Per-component `Cmᵢ×√bᵢ` rounded to **5 d.p.** before summing.
+- `Z_exact = 1 − (ΣCm√b)²` — used for HHV, LHV, SG.
+- `Z_rounded = ROUND(Z_exact, 4)` — used ONLY for ρ_std (flow density).
+- HHV/LHV = `ROUND( Σ(Cmᵢ×Hᵢ) / Z_exact, 2 )` — no per-component rounding of products.
+- SG = `ROUND( Σ(Cmᵢ×Sᵢ) / Z_exact, 3 )`.
+- WI = `ROUND( HHV_2dp / √(SG_3dp), 2 )` — uses the **already-rounded** HHV and SG. WI is always HHV-based per JIS K 2301 §7, regardless of HHV/LHV toggle state.
+- ρ_std = `101325 × (MW/1000) / (Z_rounded × 8.31446262 × 273.15)` [kg/Nm³].
+- R = 8.31446262 J/(mol·K); T_std = 273.15 K; P_std = 101325 Pa; Nm³↔scf factor = 37.3258.
+- LHV component values are from JIS K 2301:2011 Table 30, anchored on CH₄ = 35.818 MJ/Nm³ (implied ΔHvap(H₂O) = 2.011 MJ/Nm³ per mol H₂O at 0°C). Do not recompute or "correct" them.
+- LNG liquid density: ISO 6578:1991 Klosek-McKinley, Tables B.2 (molar volumes, linear T interpolation) and C (k₁/k₂, linear MW interpolation).
+
+## Reference Test Values — MUST REPRODUCE EXACTLY
+
+Composition: CH₄=89, C₂H₆=7, C₃H₈=2.5, iC₄=0.7, nC₄=0.5, N₂=0.3 (vol%):
+
+| Quantity | Expected |
+|---|---|
+| Mole fractions (4 d.p.) | CH₄ 0.8887, C₂ 0.0704, C₃ 0.0254, iC₄ 0.0073, nC₄ 0.0052, N₂ 0.0030 |
+| Z_exact / Z_rounded | 0.996759 / 0.9968 |
+| HHV | 44.59 MJ/Nm³ |
+| LHV | 40.25 MJ/Nm³ |
+| SG | 0.634 |
+| WI | 56.00 |
+| MW | 18.305 g/mol |
+| ρ_std | 0.81930 kg/Nm³ |
+| 100 ton/h → | 122.056 kNm³/h |
+| 100 kNm³/h → | 81.930 ton/h |
+
+After ANY change touching `calcGHV()`, `gasComps`, or related logic, re-verify these values (a quick Python check is acceptable) before committing.
+
+### Basic Eng real-gas vectors (v2.8) — SG 0.65, 2,000 psi, 150 °F, k = 1.3
+
+Shared by the Z-Factor Estimator and the Gas Property Estimator through `papayZ()`. Re-verify after ANY change to `papayZ()`, `toPsia()`, `toRankine()`, `calcZFactor()` or `calcGasProps()`. Full derivation in `docs/SPECIFICATION.md` §9 Vectors 5–6.
+
+| Quantity | Expected |
+|---|---|
+| P_pc / T_pc | 670.1290 psia / 365.1100 °R |
+| P_r / T_r | 2.984500 / 1.669826 |
+| **Z** | **0.8646** (0.864584 exact) — both cards must show this |
+| ρ (Papay) | 0.1066271 g/cm³ |
+| **μ_g** (Lee-Gonzalez-Eakin) | **0.016663 cP** |
+| **c** (sonic) | **410.0269 m/s** |
+| **μ_JT** | **0.3279 K/bar** |
+
+**Use the ORIGINAL LGE coefficients** — 9.379 / 0.01607 / 209.2 / 19.26, X = 3.448 + 986.4/T + 0.01009M, Y = 2.447 − 0.2224X. The widely-copied *rounded* set (9.4 / 0.02 / 209 / 19) shifts μ by ≈ −2.1 %, and two corrupted variants circulate on wiki sites (`X = 3.488`, and `0.001·M` for `0.01·M`). `tests/test_js_constants.py` pins all of these.
+
+## Documentation Sync Rule
+
+`index.html` contains embedded documentation (How To Use tab, Theory tab). Whenever a feature, constant, or calculation changes, check and update:
+- Theory tab: Table 5.1 constants, §5.3–§5.7 worked examples, and the Part covering the affected tab. **(Renumbered in v3.4 — the compositional Part is now V, not I; see the Documentation Tab Structure Rules above before adding or moving anything.)**
+- How To Use tab: the numbered section covering the affected card (its mockup, annotations and reference-value callout), **plus a `<details>` entry in the `Appendix — Release Notes` when the change ships as a release**.
+- `docs/SPECIFICATION.md`: the affected module/API section and, if applicable, the Known Issues register.
+- `docs/DEVELOPMENT_PLAN.md`: a new §4 Version History row, and §6 Roadmap status when a
+  roadmap candidate ships or is rejected.
+- `docs/PRESERVATION.md`: a new section whenever the release adds an element ID, payload key,
+  default value or literal that later work must not silently drop.
+- **(v2.7+) all 10 `i18n/*.json` files:** any new or changed user-visible working-tool string needs a matching key added/updated in **every** dictionary in the same commit. Any edit to the How To Use / Theory / Terms / Privacy inline English HTML must be mirrored into the corresponding `docs.*` key in **all 9 non-English dictionaries** (English doc content lives only inline in `index.html`). Missing keys silently fall back to English at runtime rather than erroring, so stale translations are easy to miss; check deliberately.
+Numbers in worked examples must match actual calculator output exactly.
+
+## Git Workflow
+
+Always follow this exact sequence:
+
+```bash
+git pull origin main
+git add <changed files>
+git commit -m "<type>: v<version> — <description>"
+git push origin main
+```
+
+- Commit message types: `feat:`, `fix:`, `docs:`, `chore:`.
+- Tag releases: `git tag -a vX.Y -m "..."` then `git push origin vX.Y`. Hotfixes use vX.Y.Z. Tag the actual commit on `main` **after** it lands there — if the change went through a PR, the merged SHA on `main` is very often *not* the same SHA as the feature branch's tip (squash or merge commits both create a new SHA), so tag `origin/main`'s HEAD post-merge, not your local branch.
+- Never force-push to `main`. Never commit without showing the diff first.
+- Pushing to `main` triggers a live Vercel deployment — confirm with Naoto before pushing anything non-trivial.
+
+### Version-bump checklist — every location, every time
+
+A version number change is **not done** until every one of these is updated together, in the same change. This list exists because v2.6 shipped without it and left the app displaying "Version 2.5" in three places for a full release cycle — treat every entry below as mandatory, not best-effort:
+
+- [ ] `index.html` `<title>` (`meta.pageTitle` key — see below, not the literal HTML text, though update that fallback text too)
+- [ ] `index.html` footer copyright line (`footer.copyright` key)
+- [ ] `index.html` `exportReport()` — the `{version: '…'}` argument passed to `tr('js.export.versionGenerated', …)`
+- [ ] `i18n/*.json` `report.mailtoBody` key — embeds `Env: Browser/Client-Side VX.Y` in the bug-report email body
+- [ ] `index.html` How To Use tab heading ("Operations Manual vX.Y") and Theory tab intro paragraph ("…implemented in vX.Y") — update these two, **and (v2.7+) their translated copies in the `docs.howto.b001` / `docs.theory.b001` keys of all 9 non-English dictionaries**; do **not** touch historical `★ New in Version X.Y` changelog headings or `// vX.Y — …` code comments, which correctly describe *when that specific thing was added*, not the current version
+- [ ] **`i18n/en.json` and every other enabled language's dictionary** (all ten as of v2.7: `ja`, `zh`, `ko`, `th`, `id`, `ru`, `es`, `fr`, `de` alongside `en`) — both the `meta.pageTitle` and `footer.copyright` keys, in **every** file. This is the location most likely to be missed, since it's data, not markup.
+- [ ] `README.md` — the `# … — vX.Y` title line, plus the Core Features list (a release that adds a card adds a bullet) and the docs-table row describing `DEVELOPMENT_PLAN.md`
+- [ ] `CLAUDE.md` — the `App:` line at the top, and the `docs/ (vX.Y)` reference just below it
+- [ ] `docs/DEVELOPMENT_PLAN.md`, `docs/SPECIFICATION.md`, `docs/MARKETING.md` — each file's own `**Document version:** X.Y (accompanies/describes app vX.Y)` header line, plus a new Version History row in DEVELOPMENT_PLAN.md §4
+- [ ] Git tag on the post-merge `main` HEAD (see above)
+
+Grep for the outgoing version number across the whole repo (`grep -rni "v3\.8\.2" .` style, adjusted per bump) before considering a version change finished — treat any hit outside a historical changelog/comment as a miss.
+
+## Local Development & Testing
+
+- `vercel dev` is required to test the two Python API endpoints locally (opening index.html directly breaks the Advanced ΔP and Safety PSV calculators).
+- API-side rules — stdlib-only dependency constraints, curl test procedure, the multiply-to-SI unit-factor convention, and the mandatory dp_calculator / Flow Regime reference cases — are maintained in [`api/CLAUDE.md`](api/CLAUDE.md). Re-verify those reference cases after touching any file in `api/`.
+
+### Automated test suite (v2.8) — run it, don't just trust the checklist
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+
+379 tests (v3.8.3) — `pytest --collect-only -q` is the authority, not this number.
+Full detail in `docs/SPECIFICATION.md` §13; the essentials:
+
+- **What it covers:** Vector 2 (ΔP), Vector 3 (Flow Regime), five candidate PRV cases, i18n key parity across all 10 dictionaries (including `{placeholder}` drift and version-string consistency), and the architectural rules — stdlib-only endpoints, no frontend build step, `pytest` never in `requirements.txt`.
+- **What it does NOT cover:** **Vector 1, the JIS K 2301 chain.** It lives in JavaScript (`calcGHV()`), so pytest cannot reach it. **After any change touching `calcGHV()`, `gasComps`, or `calcLNGDensity()`, the reference values above still have to be verified by hand** — a green CI run does not mean the JIS chain is safe.
+- **`requirements-dev.txt` is separate on purpose.** Vercel installs `requirements.txt` into the production runtime; never put test tooling there. `tests/test_architecture.py` enforces this.
+- **The suite locks CURRENT behavior, including known defects.** Where it pins a defect (RP 14E constant, two-phase `Pc`, the zero-viscosity 500) the test says so and names the `docs/SPECIFICATION.md` §11 entry. Closing one of those issues means updating the test and the register together — that coupling is deliberate, not an obstacle to route around.
+- **If a test result looks impossible, delete `__pycache__`.** A restored source file can carry an mtime older than the `.pyc` compiled from a modified version, and Python will keep serving the stale bytecode. This bit during development of the suite itself.
+- Adding user-visible strings? The i18n parity test is what stops a dictionary being silently skipped — run `pytest tests/test_i18n_parity.py` after touching any `i18n/*.json`.
+
+## Engineering Standards References
+
+- JIS K 2301:2011 — calorific value, density, SG, Wobbe index from composition.
+- ISO 6578:1991 — LNG density (Klosek-McKinley).
+- API Standard 520 Part I, 9th Ed. (2014) — PRV sizing; API 526 orifice areas D–T.
+- API RP 14E (5th Ed., 1991) — erosional-velocity screening criterion V_e = C/√ρ (ΔP card, v2.4). SI form V_e = 1.2199033·C/√ρ, an exact unit conversion (0.3048·√16.0184634); corrected in v2.8 from the erroneous √1.5.
+- Papay (1968) with Standing-Katz pseudo-criticals — gas Z-factor (Basic Eng); validity 0 < Pr ≤ 15, 1.05 ≤ Tr ≤ 3.0.
+- CODATA 2018 — gas constant.
+- Colebrook & White (1939) — friction factor.
+
+## Communication Preferences
+
+- Explain proposed changes as targeted diffs before applying.
+- When uncertain whether something is a feature or a bug, ASK — do not assume.
+- Responses about engineering values should show the verification calculation.
