@@ -1,12 +1,12 @@
-# O&G Engineering Converter — v3.9
+# OIL & GAS Converter — v3.9
 
 A high-precision, control-room-ready suite of engineering tools for the **Oil & Gas** and **LNG** sectors.
 
 Built to replace fragmented, legacy Excel spreadsheets, this application gives process engineers, operators, and facility managers instantaneous, standards-compliant thermodynamic and hydraulic calculations — directly from a web browser.
 
 🔗 **Live:** deployed on Vercel (auto-deploys from `main`)
-📦 **Repository:** <https://github.com/petronaoto/unit-converter>
-🎬 **Demo video (2 min):** <https://youtu.be/TX4Xp0RhQ6s> — YouTube channel [@engineeringconverter](https://www.youtube.com/@engineeringconverter)
+📦 **Repository:** <https://github.com/GLOBBLEOFFICIAL/GLOBBLE-CONVERTOR>
+🎬 **Demo video (2 min):** <https://youtu.be/TX4Xp0RhQ6s> — YouTube channel
 🎓 **Complete walkthrough (25 min, every tab and card, with chapters and subtitles):** <https://youtu.be/yCEfv4oiMwc>
 
 [![Two-minute demo of the O&G Engineering Converter](assets/demo-thumb.jpg)](https://youtu.be/TX4Xp0RhQ6s)
