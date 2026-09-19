@@ -7,7 +7,7 @@ Built to replace fragmented, legacy Excel spreadsheets, this application gives p
 🔗 **Live:** deployed on Vercel (auto-deploys from `main`)
 📦 **Repository:** <https://github.com/GLOBBLEOFFICIAL/GLOBBLE-CONVERTOR>
 🎬 **Demo video (2 min):** <https://youtu.be/TX4Xp0RhQ6s> — YouTube channel
-🎓 **Complete   Website (every tab and card, with chapters and subtitles):** (https://engineering-converter.com/)
+🎓 **Complete   Website (every tab and card, with chapters and subtitles):** 
 
 ---
 
